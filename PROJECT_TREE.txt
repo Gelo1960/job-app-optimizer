@@ -1,0 +1,161 @@
+job-app-optimizer/
+│
+├── 📱 APP (Next.js 14 - App Router)
+│   ├── api/                              # API Routes
+│   │   ├── analyze-job/
+│   │   │   └── route.ts                 ✅ Analyse offres avec Claude
+│   │   ├── generate-cv/
+│   │   │   └── route.ts                 ✅ Génération CV optimisé
+│   │   ├── generate-letter/
+│   │   │   └── route.ts                 🚧 TODO: Lettres de motivation
+│   │   ├── enrich-company/
+│   │   │   └── route.ts                 🚧 TODO: Scraping entreprise
+│   │   ├── find-contacts/
+│   │   │   └── route.ts                 🚧 TODO: Hunter.io
+│   │   ├── detect-ghost-job/
+│   │   │   └── route.ts                 🚧 TODO: Détecteur ghost jobs
+│   │   └── track-application/
+│   │       └── route.ts                 🚧 TODO: Tracking candidatures
+│   │
+│   ├── dashboard/                        # Pages protégées
+│   │   ├── page.tsx                     🚧 TODO: Dashboard principal
+│   │   ├── profile/
+│   │   │   └── page.tsx                 🚧 TODO: Gestion profil
+│   │   ├── applications/
+│   │   │   └── page.tsx                 🚧 TODO: Liste candidatures
+│   │   └── analytics/
+│   │       └── page.tsx                 🚧 TODO: Stats A/B testing
+│   │
+│   ├── layout.tsx                       ✅ Layout Next.js par défaut
+│   └── page.tsx                         🚧 TODO: Landing page custom
+│
+├── 📚 LIB (Business Logic)
+│   ├── services/                         # Services métier
+│   │   ├── claude.service.ts            ✅ Wrapper API Claude
+│   │   ├── job-analyzer.service.ts      ✅ Analyse offres + cache
+│   │   └── cv-generator.service.ts      ✅ Génération CV + scoring ATS
+│   │
+│   ├── prompts/                          # Prompts système Claude
+│   │   ├── job-analysis.prompt.ts       ✅ Extraction keywords
+│   │   └── cv-generation.prompt.ts      ✅ Génération CV optimisé
+│   │
+│   ├── types/
+│   │   └── index.ts                     ✅ 25+ interfaces TypeScript
+│   │
+│   ├── db/
+│   │   ├── schema.sql                   ✅ Schéma Supabase complet
+│   │   └── supabase.ts                  ✅ Client Supabase
+│   │
+│   └── utils/                            # Utilitaires
+│       └── (à créer si nécessaire)
+│
+├── 🎨 COMPONENTS (React)
+│   ├── ui/                               # Shadcn/ui components
+│   │   └── (à installer via shadcn CLI)
+│   │
+│   ├── forms/                            # Formulaires
+│   │   ├── ProfileForm.tsx              🚧 TODO: Édition profil
+│   │   ├── JobAnalysisForm.tsx          🚧 TODO: Paste offre
+│   │   └── ApplicationForm.tsx          🚧 TODO: Track candidature
+│   │
+│   ├── preview/                          # Prévisualisation
+│   │   ├── CVPreview.tsx                🚧 TODO: Affichage CV
+│   │   ├── LetterPreview.tsx            🚧 TODO: Affichage LM
+│   │   └── ScoreCard.tsx                🚧 TODO: Score ATS + Risk
+│   │
+│   └── dashboard/                        # Dashboard
+│       ├── ApplicationsList.tsx         🚧 TODO: Liste candidatures
+│       ├── ABTestChart.tsx              🚧 TODO: Graphiques
+│       └── StatsCards.tsx               🚧 TODO: KPIs
+│
+├── 📄 PUBLIC
+│   └── templates/                        # Templates CV
+│       └── (à créer: templates PDF/DOCX)
+│
+├── 📘 DOCUMENTATION
+│   ├── README.md                         ✅ Doc complète (450 lignes)
+│   ├── GETTING_STARTED.md                ✅ Guide installation (300 lignes)
+│   ├── ARCHITECTURE.md                   ✅ Architecture technique (600 lignes)
+│   ├── DEV_GUIDE.md                      ✅ Guide développeur (700 lignes)
+│   ├── PROJECT_SUMMARY.md                ✅ Récapitulatif projet (500 lignes)
+│   └── PROJECT_TREE.txt                  ✅ Ce fichier
+│
+├── ⚙️ CONFIGURATION
+│   ├── .env.example                      ✅ Template variables env
+│   ├── package.json                      ✅ Dépendances installées
+│   ├── tsconfig.json                     ✅ Config TypeScript
+│   ├── tailwind.config.ts                ✅ Config Tailwind
+│   └── next.config.ts                    ✅ Config Next.js
+│
+└── 📊 STATS
+    ├── Fichiers créés: 22
+    ├── Lignes de code: ~3500
+    ├── Services: 3 (Claude, Analyzer, Generator)
+    ├── API Routes: 2 (+ 5 à créer)
+    ├── Tables DB: 10
+    ├── Types TS: 25+
+    └── Temps estimé dev frontend: 6-8 semaines
+
+
+═══════════════════════════════════════════════════════════════════
+                        LÉGENDE
+═══════════════════════════════════════════════════════════════════
+✅ COMPLÉTÉ     : Fichier créé et fonctionnel
+🚧 TODO         : À développer
+📱 APP          : Frontend Next.js
+📚 LIB          : Backend / Business Logic
+🎨 COMPONENTS   : Composants React
+📄 PUBLIC       : Assets statiques
+📘 DOCUMENTATION: Docs et guides
+⚙️ CONFIGURATION: Config et setup
+═══════════════════════════════════════════════════════════════════
+
+
+═══════════════════════════════════════════════════════════════════
+                    PROCHAINES ÉTAPES
+═══════════════════════════════════════════════════════════════════
+
+PHASE 1 : SETUP (1 jour)
+□ Configurer Supabase (exécuter schema.sql)
+□ Ajouter clés API dans .env.local
+□ Tester endpoints avec curl
+□ Valider backend fonctionne
+
+PHASE 2 : PROFIL (1 semaine)
+□ Créer ProfileForm
+□ Intégrer Supabase Auth
+□ CRUD projets/expériences/éducation/skills
+□ Page /dashboard/profile
+
+PHASE 3 : GÉNÉRATION (2 semaines)
+□ JobAnalysisForm (paste offre)
+□ CVGeneratorWizard (variantes + niveau)
+□ CVPreview (affichage)
+□ ScoreCard (ATS + Risk)
+□ Export texte
+
+PHASE 4 : TRACKING (1 semaine)
+□ ApplicationForm (enregistrer candidature)
+□ ApplicationsList (tableau)
+□ Dashboard analytics (graphiques)
+□ A/B testing results
+
+PHASE 5 : EXPORT (1 semaine)
+□ Intégrer Puppeteer
+□ Templates PDF
+□ Templates DOCX
+□ Export boutons
+
+PHASE 6 : POLISH (1 semaine)
+□ Design system (Shadcn)
+□ Responsive mobile
+□ Animations
+□ Error handling
+□ SEO
+
+═══════════════════════════════════════════════════════════════════
+
+
+ARCHITECTURE BACKEND: 100% COMPLÈTE ✅
+FRONTEND: 0% (PRÊT À DÉVELOPPER) 🚀
+
