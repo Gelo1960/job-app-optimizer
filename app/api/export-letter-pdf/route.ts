@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const sanitizedFilename = sanitizeFilename(filename);
 
     // Retourner le PDF avec les headers appropriés
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

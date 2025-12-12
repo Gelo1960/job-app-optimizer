@@ -10,10 +10,10 @@ export const dynamic = 'force-dynamic';
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const applicationId = params.id;
+    const { id: applicationId } = await params;
     const body = await request.json();
 
     // Validation
@@ -68,10 +68,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const applicationId = params.id;
+    const { id: applicationId } = await params;
 
     const success = await analyticsService.deleteApplication(applicationId);
 
@@ -108,10 +108,10 @@ export async function DELETE(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const applicationId = params.id;
+    const { id: applicationId } = await params;
 
     const events = await analyticsService.getApplicationEvents(applicationId);
 

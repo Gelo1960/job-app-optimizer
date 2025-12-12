@@ -145,15 +145,15 @@ export class CompanyEnrichmentService {
   private static createFallbackEnrichment(companyName: string): CompanyEnrichment {
     return {
       companyName,
-      website: null,
-      linkedinUrl: null,
+      website: undefined,
+      linkedinUrl: undefined,
       recentAchievements: [],
       painPoints: ['En cours de recrutement'],
       cultureKeywords: ['Innovation', 'Collaboration'],
       notableProducts: [],
       recentNews: [],
-      employeeCount: null,
-      funding: null,
+      employeeCount: undefined,
+      funding: undefined,
     };
   }
 

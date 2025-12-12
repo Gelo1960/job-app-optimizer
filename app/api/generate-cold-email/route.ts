@@ -6,12 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { coldEmailGeneratorService } from '@/lib/services/cold-email-generator.service';
 import { ColdEmail, EmailTone, JobAnalysis, CompanyEnrichment, Contact } from '@/lib/types';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase } from '@/lib/db/supabase';
 
 // ============================================================================
 // POST /api/generate-cold-email

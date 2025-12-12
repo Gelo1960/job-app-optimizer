@@ -4,7 +4,7 @@
 // ============================================================================
 
 import { ContactSearchResult, Contact } from '@/lib/types';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/db/supabase';
 
 const HUNTER_API_KEY = process.env.HUNTER_IO_API_KEY;
 const HUNTER_BASE_URL = 'https://api.hunter.io/v2';
@@ -33,13 +33,7 @@ interface HunterResponse {
 // ============================================================================
 
 export class ContactFinderService {
-  private supabase;
-
-  constructor() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-    this.supabase = createClient(supabaseUrl, supabaseKey);
-  }
+  private supabase = supabase;
 
   // --------------------------------------------------------------------------
   // RECHERCHE PRINCIPALE

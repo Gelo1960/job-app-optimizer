@@ -264,7 +264,6 @@ export default function ApplicationsPage() {
                       onValueChange={(value) =>
                         setFormData({ ...formData, cvVariant: value })
                       }
-                      required
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner..." />
