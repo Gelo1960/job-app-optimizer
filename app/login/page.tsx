@@ -25,7 +25,8 @@ export default function LoginPage() {
             setError(error.message);
             setLoading(false);
         } else {
-            router.push('/dashboard');
+            // Force full page reload to ensure auth state is loaded
+            window.location.href = '/dashboard';
         }
     };
 
