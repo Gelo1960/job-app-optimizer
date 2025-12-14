@@ -1,51 +1,44 @@
 import { createServerClient } from '@supabase/ssr';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function middleware(req: NextRequest) {
-    let res = NextResponse.next({
-        request: {
-            headers: req.headers,
-        },
+export async function middleware(request: NextRequest) {
+    let response = NextResponse.next({
+        request,
     });
 
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             cookies: {
                 get(name: string) {
-                    return req.cookies.get(name)?.value;
+                    return request.cookies.get(name)?.value;
                 },
                 set(name: string, value: string, options: any) {
-                    req.cookies.set({
+                    request.cookies.set({
                         name,
                         value,
                         ...options,
                     });
-                    res = NextResponse.next({
-                        request: {
-                            headers: req.headers,
-                        },
+                    response = NextResponse.next({
+                        request,
                     });
-                    res.cookies.set({
+                    response.cookies.set({
                         name,
                         value,
                         ...options,
                     });
                 },
                 remove(name: string, options: any) {
-                    req.cookies.set({
+                    request.cookies.set({
                         name,
                         value: '',
                         ...options,
                     });
-                    res = NextResponse.next({
-                        request: {
-                            headers: req.headers,
-                        },
+                    response = NextResponse.next({
+                        request,
                     });
-                    res.cookies.set({
+                    response.cookies.set({
                         name,
                         value: '',
                         ...options,
@@ -55,30 +48,54 @@ export async function middleware(req: NextRequest) {
         }
     );
 
+    // IMPORTANT: Avoid writing any logic between createServerClient and
+    // supabase.auth.getUser(). A simple mistake could make it very hard to debug
+    // issues with users being randomly logged out.
+
     const {
-        data: { session },
-    } = await supabase.auth.getSession();
+        data: { user },
+    } = await supabase.auth.getUser();
 
     // Protect dashboard routes
-    if (req.nextUrl.pathname.startsWith('/dashboard')) {
-        if (!session) {
-            const redirectUrl = req.nextUrl.clone();
-            redirectUrl.pathname = '/login';
-            redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname);
-            return NextResponse.redirect(redirectUrl);
-        }
+    if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/login';
+        url.searchParams.set('redirectedFrom', request.nextUrl.pathname);
+        return NextResponse.redirect(url);
     }
 
-    // Redirect to dashboard if already logged in and trying to access login/signup
-    if (session && (req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/signup')) {
-        const redirectUrl = req.nextUrl.clone();
-        redirectUrl.pathname = '/dashboard';
-        return NextResponse.redirect(redirectUrl);
+    // Redirect authenticated users away from login/signup
+    if ((request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup') && user) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/dashboard';
+        return NextResponse.redirect(url);
     }
 
-    return res;
+    // IMPORTANT: You *must* return the response object as it is. If you're
+    // creating a new response object with NextResponse.next() make sure to:
+    // 1. Pass the request in it, like so:
+    //    const myNewResponse = NextResponse.next({ request })
+    // 2. Copy over the cookies, like so:
+    //    myNewResponse.cookies.setAll(response.cookies.getAll())
+    // 3. Change the myNewResponse object to fit your needs, but avoid changing
+    //    the cookies!
+    // 4. Finally:
+    //    return myNewResponse
+    // If this is not done, you may be causing the browser and server to go out
+    // of sync and terminate the user's session prematurely!
+
+    return response;
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*', '/login', '/signup'],
+    matcher: [
+        /*
+         * Match all request paths except for the ones starting with:
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * Feel free to modify this pattern to include more paths.
+         */
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    ],
 };
