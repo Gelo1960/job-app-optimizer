@@ -7,17 +7,17 @@ import { SkillsSection } from "@/components/forms/profile/SkillsSection";
 import { ProfileService } from "@/lib/services/profile.service";
 import { UserProfile } from "@/lib/types";
 import { GraduationCap, Briefcase } from "lucide-react";
-
-// Mock User ID for MVP (In real app, this comes from Auth Context)
-const MOCK_USER_ID = "00000000-0000-0000-0000-000000000000";
+import { useAuth } from "@/lib/context/auth-context";
 
 export default function ProfilePage() {
+  const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async () => {
-    // setLoading(true); // Don't block UI on refresh
-    const { data } = await ProfileService.getFullProfile(MOCK_USER_ID);
+    if (!user) return;
+
+    const { data } = await ProfileService.getFullProfile(user.id);
     if (data) {
       setProfile(data);
     }
@@ -25,8 +25,10 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (!authLoading && user) {
+      fetchProfile();
+    }
+  }, [authLoading, user]);
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin text-4xl">⏳</div></div>;
@@ -50,7 +52,7 @@ export default function ProfilePage() {
 
       {/* Identity Form (includes Left Column) */}
       <IdentityForm
-        userId={MOCK_USER_ID}
+        userId={user?.id || ''}
         initialData={userProfile}
       />
 
@@ -121,14 +123,14 @@ export default function ProfilePage() {
 
         {/* Left Column: Identity & Socials */}
         <div className="lg:col-span-1">
-          <IdentityForm userId={MOCK_USER_ID} initialData={userProfile} />
+          <IdentityForm userId={user?.id || ''} initialData={userProfile} />
         </div>
 
         {/* Right Column: Experience, Education, Skills */}
         <div className="lg:col-span-2 space-y-6">
 
           <ExperienceSection
-            userId={MOCK_USER_ID}
+            userId={user?.id || ''}
             experiences={userProfile.experiences || []}
             onRefresh={fetchProfile}
           />
@@ -145,7 +147,7 @@ export default function ProfilePage() {
           </section>
 
           <SkillsSection
-            userId={MOCK_USER_ID}
+            userId={user?.id || ''}
             initialSkills={userProfile.skills}
             onRefresh={fetchProfile}
           />
