@@ -1,24 +1,46 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { CoverLetterService } from "@/lib/services/cover-letter.service";
 import { CoverLetterRequest, UserProfile } from "@/lib/types";
 import { ProfileService } from "@/lib/services/profile.service";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
-        const { userProfileId, jobAnalysis, companyInfo, tone } = body as CoverLetterRequest;
+        // Get authenticated user
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
+            {
+                global: {
+                    headers: {
+                        Authorization: req.headers.get('Authorization') || '',
+                    },
+                },
+            }
+        );
 
-        if (!userProfileId || !jobAnalysis || !companyInfo) {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError || !user) {
             return NextResponse.json(
-                { error: "Missing required fields: userProfileId, jobAnalysis, companyInfo" },
+                { error: "Non authentifié" },
+                { status: 401 }
+            );
+        }
+
+        const body = await req.json();
+        const { jobAnalysis, companyInfo, tone } = body as CoverLetterRequest;
+
+        if (!jobAnalysis || !companyInfo) {
+            return NextResponse.json(
+                { error: "Missing required fields: jobAnalysis, companyInfo" },
                 { status: 400 }
             );
         }
 
         // 1. Fetch full user profile (needed for deep personalization)
         // using existing ProfileService to get data from Supabase
-        const { data: userProfile, error } = await ProfileService.getFullProfile(userProfileId);
+        const { data: userProfile, error } = await ProfileService.getFullProfile(user.id);
 
         if (error || !userProfile) {
             return NextResponse.json(
@@ -27,10 +49,11 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // 2. Generate Cover Letter
+        // 2. Generate Cover Letter with user's API keys
         const content = await CoverLetterService.generate(
-            { userProfileId, jobAnalysis, companyInfo, tone },
-            userProfile
+            { userProfileId: user.id, jobAnalysis, companyInfo, tone },
+            userProfile,
+            user.id  // Pass userId for API key lookup
         );
 
         // 3. Return structured content

@@ -6,8 +6,9 @@ export class CoverLetterService {
 
   /**
    * Generates a tailored cover letter based on user profile, job, and company info.
+   * @param userId - User ID for API key lookup
    */
-  static async generate(request: CoverLetterRequest, userProfile: UserProfile): Promise<CoverLetterContent> {
+  static async generate(request: CoverLetterRequest, userProfile: UserProfile, userId: string): Promise<CoverLetterContent> {
     const prompt = generateCoverLetterPrompt(
       userProfile,
       request.jobAnalysis,
@@ -18,7 +19,8 @@ export class CoverLetterService {
     try {
       const response = await AIService.sendPromptJSON<CoverLetterContent>(
         prompt,
-        COVER_LETTER_SYSTEM_PROMPT
+        COVER_LETTER_SYSTEM_PROMPT,
+        { userId }
       );
 
       return response;
