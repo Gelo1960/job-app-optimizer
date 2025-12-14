@@ -11,45 +11,33 @@ interface CVPreviewProps {
 }
 
 export function CVPreview({ content }: CVPreviewProps) {
-  const [isExporting, setIsExporting] = useState(false);
+  const [isExporting, setIsExporting] = useState<"pdf" | "docx" | null>(null);
 
-  const handleExportPDF = async () => {
-    setIsExporting(true);
+  const handleExport = async (format: "pdf" | "docx") => {
+    setIsExporting(format);
     try {
-      // Générer le nom de fichier
-      const filename = `CV_${content.header.name.replace(/\s+/g, '_')}.pdf`;
+      const filename = `CV_${content.header.name.replace(/\s+/g, '_')}.${format}`;
+      const endpoint = format === "pdf" ? "/api/export/pdf" : "/api/export/docx";
 
-      // Appeler l'API
-      const response = await fetch('/api/export-cv-pdf', {
+      const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          cvContent: content,
-          filename,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(content),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate PDF');
-      }
+      if (!response.ok) throw new Error(`Failed to generate ${format.toUpperCase()}`);
 
-      // Télécharger le fichier
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+
+      // Dynamic import to avoid SSR issues with file-saver if any
+      const { saveAs } = await import("file-saver");
+      saveAs(blob, filename);
+
     } catch (error) {
-      console.error('Error exporting PDF:', error);
-      alert('Erreur lors de l\'export du PDF. Veuillez réessayer.');
+      console.error(`Error exporting ${format.toUpperCase()}:`, error);
+      alert(`Erreur lors de l'export ${format.toUpperCase()}. Veuillez réessayer.`);
     } finally {
-      setIsExporting(false);
+      setIsExporting(null);
     }
   };
 
@@ -58,25 +46,36 @@ export function CVPreview({ content }: CVPreviewProps) {
       <CardHeader className="border-b">
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1" />
-          <Button
-            onClick={handleExportPDF}
-            disabled={isExporting}
-            variant="default"
-            size="sm"
-            className="gap-2"
-          >
-            {isExporting ? (
-              <>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => handleExport("docx")}
+              disabled={!!isExporting}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              {isExporting === "docx" ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Export en cours...
-              </>
-            ) : (
-              <>
+              ) : (
                 <Download className="h-4 w-4" />
-                Exporter en PDF
-              </>
-            )}
-          </Button>
+              )}
+              Word (DOCX)
+            </Button>
+            <Button
+              onClick={() => handleExport("pdf")}
+              disabled={!!isExporting}
+              variant="default"
+              size="sm"
+              className="gap-2"
+            >
+              {isExporting === "pdf" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              PDF
+            </Button>
+          </div>
         </div>
         <div className="text-center space-y-2">
           {/* Header */}

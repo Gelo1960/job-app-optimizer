@@ -1,198 +1,159 @@
 "use client"
 
-import { useState } from "react";
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Linkedin,
-  Github,
-  Globe,
-  Briefcase,
-  GraduationCap,
-  Code2,
-  Plus,
-  Save,
-  Trash2,
-  Sparkles
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { IdentityForm } from "@/components/forms/profile/IdentityForm";
+import { ExperienceSection } from "@/components/forms/profile/ExperienceSection";
+import { SkillsSection } from "@/components/forms/profile/SkillsSection";
+import { ProfileService } from "@/lib/services/profile.service";
+import { UserProfile } from "@/lib/types";
+import { GraduationCap, Briefcase } from "lucide-react";
+
+// Mock User ID for MVP (In real app, this comes from Auth Context)
+const MOCK_USER_ID = "00000000-0000-0000-0000-000000000000";
 
 export default function ProfilePage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProfile = async () => {
+    // setLoading(true); // Don't block UI on refresh
+    const { data } = await ProfileService.getFullProfile(MOCK_USER_ID);
+    if (data) {
+      setProfile(data);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin text-4xl">⏳</div></div>;
+  }
+
+  // If no profile exists yet (first login), use empty default
+  const userProfile = profile || {} as UserProfile;
 
   return (
     <div className="space-y-8 pb-20">
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-            My Profile
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your personal information and professional identity
-          </p>
-        </div>
-        <button className="glass px-6 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-primary to-purple-600 shadow-lg shadow-primary/25 hover:opacity-90 transition-all flex items-center gap-2">
-          <Save className="h-4 w-4" />
-          Save Changes
-        </button>
+      <div>
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
+          Mon Profil
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Gérez votre identité professionnelle et vos expériences
+        </p>
       </div>
+
+      {/* Identity Form (includes Left Column) */}
+      <IdentityForm
+        userId={MOCK_USER_ID}
+        initialData={userProfile}
+      />
+
+      {/* Since IdentityForm is a grid, we "portal" these sections into its right column placeholder using CSS grid or structure here? 
+          Actually, IdentityForm structure was: Left Col (Form) | Right Col (Empty).
+          Looking at my implementation of IdentityForm, it WRAPS the grid. 
+          Wait, the IdentityForm renders the FORM tag which wraps the whole layout.
+          Ideally, IdentityForm should only handle Identity data.
+          
+          Let's Refactor slightly: IdentityForm will just be the "Identity" card.
+          But wait, the previous layout had Left Col (Identity + Socials) and Right Col (Exp + Edu + Skills).
+          
+          Let's adjust the structure in this page to match the original layout, 
+          passing the Sections as children or siblings. 
+      */}
+
+      {/* 
+        Correction: My IdentityForm implementation integrated the Layout. 
+        It has a hidden div id="profile-right-column". 
+        This is a bit messy. 
+        
+        BETTER APPROACH for this file:
+        Use the same layout grid here.
+        - Left Column: <IdentityForm /> (which I should refactor to NOT be a full page grid, but just the left column content)
+        - Right Column: <ExperienceSection />, <SkillsSection />
+        
+        However, IdentityForm currently has the <form> tag wrapping everything.
+        If I want to stick to the plan:
+        I will modify IdentityForm in the next step to be self-contained or
+        I will render the Right Column content here and use React Portals or just standard CSS Grid if I separate the form.
+        
+        Let's assume the user wants me to fix the Page first. 
+        I'll render the components and then I might need to quick-fix IdentityForm to not be a full grid if it looks broken.
+        
+        Actually, let's look at IdentityForm again. It renders:
+        <form className="grid ...">
+          <div className="lg:col-span-1">...fields...</div>
+          <div className="lg:col-span-2 ... hidden"></div>
+        </form>
+        
+        This is not ideal for composition. 
+        To make it work nicely without refactoring IdentityForm yet:
+        I will use a layout here and just place IdentityForm in the Left Slot? 
+        No, IdentityForm creates the grid.
+        
+        Let's render the IdentityForm, and use a Portal or just absolute positioning? No that's hacky.
+        
+        DECISION: I will assume I need to Refactor IdentityForm to NOT be the layout container, 
+        OR I will use a different layout strategy.
+        
+        Actually, looking at the previous file content I see:
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+           <div LeftCol>...</div>
+           <div RightCol>...</div>
+        </div>
+
+        I will Re-implement the Grid HERE.
+        And I will change IdentityForm usage. 
+        I will wrap IdentityForm in the Left Column.
+        Wait, IdentityForm uses `useForm` and submits `firstName`, etc.
+        It should only wrap the Identity inputs.
+        
+        So I will use the code below ensuring the Grid is controlled by THIS page.
+        I will need to patch IdentityForm to remove the `grid` class from the form tag if it conflicts.
+      */}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* Left Col - Personal Details */}
-        <div className="lg:col-span-1 space-y-6">
-          <section className="glass-card space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                <User className="h-5 w-5" />
-              </div>
-              <h2 className="text-xl font-semibold">Identity</h2>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground ml-1">Full Name</label>
-                <div className="mt-1.5 relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input type="text" defaultValue="Ange Yaokouassi" className="w-full pl-10 pr-4 py-2.5 bg-white/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground ml-1">Email</label>
-                <div className="mt-1.5 relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input type="email" defaultValue="ange@example.com" className="w-full pl-10 pr-4 py-2.5 bg-white/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground ml-1">Phone</label>
-                <div className="mt-1.5 relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input type="tel" placeholder="+33 6 12 34 56 78" className="w-full pl-10 pr-4 py-2.5 bg-white/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground ml-1">Location</label>
-                <div className="mt-1.5 relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input type="text" placeholder="Paris, France" className="w-full pl-10 pr-4 py-2.5 bg-white/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="glass-card space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/20">
-                <Globe className="h-5 w-5" />
-              </div>
-              <h2 className="text-xl font-semibold">Socials</h2>
-            </div>
-
-            <div className="space-y-4">
-              <div className="relative group">
-                <Linkedin className="absolute left-3 top-3 h-4 w-4 text-blue-600" />
-                <input type="text" placeholder="LinkedIn URL" className="w-full pl-10 pr-4 py-2.5 bg-white/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
-              </div>
-
-              <div className="relative group">
-                <Github className="absolute left-3 top-3 h-4 w-4 text-gray-800" />
-                <input type="text" placeholder="GitHub URL" className="w-full pl-10 pr-4 py-2.5 bg-white/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
-              </div>
-
-              <div className="relative group">
-                <Globe className="absolute left-3 top-3 h-4 w-4 text-emerald-600" />
-                <input type="text" placeholder="Portfolio URL" className="w-full pl-10 pr-4 py-2.5 bg-white/50 border border-white/20 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
-              </div>
-            </div>
-          </section>
+        {/* Left Column: Identity & Socials */}
+        <div className="lg:col-span-1">
+          <IdentityForm userId={MOCK_USER_ID} initialData={userProfile} />
         </div>
 
-        {/* Right Col - Professional Info */}
+        {/* Right Column: Experience, Education, Skills */}
         <div className="lg:col-span-2 space-y-6">
 
-          {/* Work Experience */}
-          <section className="glass-card">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-                  <Briefcase className="h-5 w-5" />
-                </div>
-                <h2 className="text-xl font-semibold">Experience</h2>
-              </div>
-              <button className="p-2 hover:bg-white/50 rounded-lg transition-colors text-primary">
-                <Plus className="h-5 w-5" />
-              </button>
-            </div>
+          <ExperienceSection
+            userId={MOCK_USER_ID}
+            experiences={userProfile.experiences || []}
+            onRefresh={fetchProfile}
+          />
 
-            <div className="text-center py-10 border-2 border-dashed border-gray-300/50 rounded-2xl bg-white/20">
-              <Briefcase className="h-10 w-10 mx-auto text-gray-400 mb-3 opacity-50" />
-              <h3 className="text-sm font-medium text-gray-600">No experience added</h3>
-              <p className="text-xs text-muted-foreground mt-1 mb-4">Add your internships and jobs</p>
-              <button className="text-xs font-semibold px-4 py-2 rounded-lg bg-white/50 hover:bg-white transition-colors border border-gray-200">
-                Add Experience
-              </button>
+          {/* Education - Placeholder using Experience styling for now or duplicate component later */}
+          <section className="glass-card opacity-75">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                <GraduationCap className="h-5 w-5" />
+              </div>
+              <h2 className="text-xl font-semibold">Education (Coming Soon)</h2>
             </div>
+            <p className="text-sm text-gray-500">Section en cours de développement...</p>
           </section>
 
-          {/* Education */}
-          <section className="glass-card">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-                  <GraduationCap className="h-5 w-5" />
-                </div>
-                <h2 className="text-xl font-semibold">Education</h2>
-              </div>
-              <button className="p-2 hover:bg-white/50 rounded-lg transition-colors text-primary">
-                <Plus className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="text-center py-10 border-2 border-dashed border-gray-300/50 rounded-2xl bg-white/20">
-              <GraduationCap className="h-10 w-10 mx-auto text-gray-400 mb-3 opacity-50" />
-              <h3 className="text-sm font-medium text-gray-600">No education added</h3>
-            </div>
-          </section>
-
-          {/* Skills */}
-          <section className="glass-card">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/20">
-                  <Code2 className="h-5 w-5" />
-                </div>
-                <h2 className="text-xl font-semibold">Skills</h2>
-              </div>
-              <button className="glass px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 hover:bg-white transition-colors">
-                <Sparkles className="h-3 w-3 text-purple-500" />
-                Auto-detect from CV
-              </button>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {["React", "Next.js", "TypeScript", "Tailwind CSS", "Node.js", "PostgreSQL", "Figma", "UI/UX Design"].map((skill) => (
-                <span key={skill} className="px-3 py-1.5 rounded-xl bg-white/40 border border-white/20 text-sm font-medium text-gray-700 hover:bg-white/60 transition-colors cursor-default flex items-center gap-2 group">
-                  {skill}
-                  <button className="opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity">
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-              <button className="px-3 py-1.5 rounded-xl border-2 border-dashed border-gray-300/60 text-sm font-medium text-gray-500 hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
-                <Plus className="h-3 w-3" /> Add
-              </button>
-            </div>
-          </section>
+          <SkillsSection
+            userId={MOCK_USER_ID}
+            initialSkills={userProfile.skills}
+            onRefresh={fetchProfile}
+          />
 
         </div>
       </div>
+
     </div>
   );
 }
+

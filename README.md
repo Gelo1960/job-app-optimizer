@@ -69,11 +69,11 @@ Ce système utilise l'IA (Claude) pour analyser des offres d'emploi et générer
 
 ### Phase 2 : Optimisations (À venir)
 
+- [ ] **Édition complète du profil** (Formulaires)
+- [ ] **Export PDF & DOCX** (Puppeteer)
 - [ ] Génération de lettres de motivation
 - [ ] Enrichissement automatique (scraping entreprise)
 - [ ] Détecteur de "ghost jobs"
-- [ ] Cold email generator
-- [ ] Recherche de contacts (LinkedIn + Hunter.io)
 
 ### Phase 3 : Analytics
 
@@ -124,7 +124,7 @@ Intégrations:
    ↓
 5. Score ATS calculé + Risk assessment
    ↓
-6. Preview → Choix de la version → Export PDF/DOCX
+6. Preview → Choix de la version → Export Texte (PDF/DOCX à venir)
 ```
 
 ---
@@ -219,14 +219,50 @@ L'application sera accessible sur `http://localhost:3000`
    - Score ATS affiché en temps réel
 
 4. **Exporter**
-   - Format DOCX pour upload ATS
-   - Format PDF pour email direct
-   - Texte brut pour copier-coller
+   - ✅ **Texte brut** (Format optimisé pour copier-coller ATS)
+   - 🚧 **Format PDF/DOCX** (Arrive en Phase 2)
 
 5. **Tracker**
    - Enregistrer la candidature
    - Suivre les réponses
    - Analyser les performances (A/B testing)
+
+---
+
+## 🧪 Guide de Test Rapide
+
+Pour tester l'application immédiatement avec des données réalistes :
+
+1. Lancer le serveur : `npm run dev`
+2. Aller sur : `http://localhost:3000/dashboard/analyze`
+3. **Copier-coller cette offre de test** :
+
+```text
+Nous recherchons un Développeur Full-Stack React Native expérimenté
+pour rejoindre notre startup en hyper-croissance.
+
+Vous développerez des applications mobiles innovantes avec TypeScript,
+Redux et Firebase. Minimum 3 ans d'expérience requis.
+
+Compétences requises:
+- React Native (obligatoire)
+- TypeScript
+- Node.js
+- PostgreSQL
+
+Compétences appréciées:
+- Supabase
+- Tests unitaires (Jest)
+
+Profil recherché:
+- Autonomie et sens de l'initiative
+- Excellent esprit d'équipe
+```
+
+4. Cliquez sur **"Analyser l'offre"**
+5. Une fois l'analyse terminée, cliquez sur **"Générer un CV optimisé"**
+6. Choisissez une variante (ex: Mobile Dev) et un niveau (ex: Optimisé)
+7. Admirez le résultat et testez l'export texte !
 
 ---
 
@@ -275,6 +311,17 @@ job-app-optimizer/
 ├── README.md                   # Documentation
 └── package.json
 ```
+
+---
+
+## 📚 Documentation Détaillée
+
+Ce projet contient une documentation technique exhaustive pour les développeurs :
+
+- **[DEV_GUIDE.md](DEV_GUIDE.md)** : Guide complet pour les développeurs (Setup, Best Practices, Debugging).
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** : Vue détaillée de l'architecture, du flux de données et des choix techniques.
+- **[GHOST_JOB_DETECTION.md](GHOST_JOB_DETECTION.md)** : Explication de l'algorithme de détection des fausses offres (Ghost Jobs).
+- **[LIVRAISON_FINALE.md](LIVRAISON_FINALE.md)** : État des lieux précis des fonctionnalités livrées pour le MVP.
 
 ---
 
@@ -393,11 +440,11 @@ ROI: 1 entretien supplémentaire = job = ∞
 - [x] Architecture complète
 
 ### 🚧 Phase 2 : Optimisations (3-4 semaines)
+- [ ] Édition complète du profil (Formulaires)
+- [ ] Export PDF & DOCX
 - [ ] Lettres de motivation
 - [ ] Enrichissement entreprise (scraping)
-- [ ] Cold email generator
 - [ ] Détecteur ghost jobs
-- [ ] Export PDF haute qualité (Puppeteer)
 
 ### 🔮 Phase 3 : Analytics (2 semaines)
 - [ ] A/B testing tracker
