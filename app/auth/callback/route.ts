@@ -1,19 +1,42 @@
+import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
-    const requestUrl = new URL(request.url);
-    const code = requestUrl.searchParams.get('code');
+    const { searchParams } = new URL(request.url);
+    const code = searchParams.get('code');
+    const next = searchParams.get('next') ?? '/dashboard';
 
     if (code) {
-        const supabase = createClient(
+        let response = NextResponse.redirect(new URL(next, request.url));
+
+        const supabase = createServerClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+                cookies: {
+                    getAll() {
+                        return request.cookies.getAll();
+                    },
+                    setAll(cookiesToSet) {
+                        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+                        response = NextResponse.redirect(new URL(next, request.url));
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            response.cookies.set(name, value, options)
+                        );
+                    },
+                },
+            }
         );
 
-        await supabase.auth.exchangeCodeForSession(code);
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+        if (!error) {
+            return response;
+        }
+
+        console.error('❌ Erreur exchange code:', error);
     }
 
     // URL to redirect to after sign in process completes
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/login', request.url));
 }

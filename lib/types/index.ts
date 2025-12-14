@@ -6,7 +6,7 @@ export type SeniorityLevel = 'junior' | 'mid' | 'senior' | 'lead' | 'principal';
 export type CompanyType = 'startup' | 'scaleup' | 'corporate' | 'agency';
 export type ATSSystem = 'greenhouse' | 'lever' | 'workday' | 'taleo' | 'bamboohr' | 'unknown';
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
-export type ApplicationStatus = 'pending' | 'sent' | 'response_positive' | 'response_negative' | 'no_response';
+export type ApplicationStatus = 'pending' | 'sent' | 'response_positive' | 'response_negative' | 'no_response' | 'interview' | 'offer' | 'rejected' | 'ghosted';
 
 // ============================================================================
 // ANALYSE D'OFFRE D'EMPLOI
@@ -325,6 +325,8 @@ export interface Application {
   status: ApplicationStatus;
   responseDate?: string;
   notes?: string;
+  location?: string;
+  logo?: string;
 }
 
 export interface ABTestResult {

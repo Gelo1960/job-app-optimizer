@@ -116,7 +116,22 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/60 backdrop-blur-xl border border-white/20 shadow-xl;
+  }
+
+  .glass-card {
+    @apply bg-white/50 backdrop-blur-lg border border-white/30 shadow-sm transition-all hover:bg-white/60;
+  }
+
+  .glass-overlay {
+    @apply bg-black/5 backdrop-blur-sm;
   }
 }

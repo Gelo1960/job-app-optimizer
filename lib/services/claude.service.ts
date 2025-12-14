@@ -1,3 +1,8 @@
+/**
+ * ⚠️ WARNING: This service creates an Anthropic API client and should ONLY be imported in API routes (server-side).
+ * DO NOT import this in Client Components or pages - it will expose your API keys!
+ */
+
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({

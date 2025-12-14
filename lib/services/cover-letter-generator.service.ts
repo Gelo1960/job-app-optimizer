@@ -1,3 +1,11 @@
+/**
+ * ⚠️ WARNING: This service uses Claude API and should ONLY be imported in API routes (server-side).
+ * DO NOT import this in Client Components or pages - it will expose your API keys!
+ * 
+ * For client-side formatting utilities, use @/lib/utils/cover-letter-formatter instead.
+ * You can import the types (CoverLetter, CoverLetterScore) safely.
+ */
+
 import {
   UserProfile,
   JobAnalysis,
@@ -140,10 +148,10 @@ export class CoverLetterGeneratorService {
     // Score global
     const overallScore = Math.round(
       lengthScore * 0.15 +
-        hookQuality * 0.25 + // Le plus important !
-        personalization * 0.25 +
-        keywordIntegration * 0.2 +
-        callToAction * 0.15
+      hookQuality * 0.25 + // Le plus important !
+      personalization * 0.25 +
+      keywordIntegration * 0.2 +
+      callToAction * 0.15
     );
 
     // Recommandation

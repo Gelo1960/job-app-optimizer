@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
-import { supabase } from '@/lib/db/supabase';
+import { createClient } from '@/lib/db/client';
 
 interface AuthContextType {
     user: User | null;
@@ -22,8 +22,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const supabase = createClient();
+
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
+            console.log('📱 Session initiale:', session ? 'Connecté' : 'Non connecté');
             setSession(session);
             setUser(session?.user ?? null);
             setLoading(false);
@@ -31,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            console.log('🔄 Changement d\'état auth:', _event, session ? 'Session active' : 'Pas de session');
             setSession(session);
             setUser(session?.user ?? null);
             setLoading(false);
@@ -40,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const signUp = async (email: string, password: string, metadata?: Record<string, any>) => {
+        const supabase = createClient();
         const { error } = await supabase.auth.signUp({
             email,
             password,
@@ -51,14 +56,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const signIn = async (email: string, password: string) => {
-        const { error } = await supabase.auth.signInWithPassword({
+        const supabase = createClient();
+        console.log('🔐 Tentative de connexion pour:', email);
+        const { error, data } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
+        console.log('🔐 Résultat connexion:', { error: error?.message, session: data.session ? 'Session créée' : 'Pas de session' });
         return { error };
     };
 
     const signInWithOAuth = async (provider: 'google' | 'github') => {
+        const supabase = createClient();
         const { error } = await supabase.auth.signInWithOAuth({
             provider,
             options: {
@@ -69,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const signOut = async () => {
+        const supabase = createClient();
         const { error } = await supabase.auth.signOut();
         return { error };
     };

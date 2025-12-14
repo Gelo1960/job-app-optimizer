@@ -1,3 +1,10 @@
+/**
+ * ⚠️ WARNING: This service uses Claude API and should ONLY be imported in API routes (server-side).
+ * DO NOT import this in Client Components or pages - it will expose your API keys!
+ * 
+ * For client-side formatting utilities, use @/lib/utils/cv-formatter instead.
+ */
+
 import {
   UserProfile,
   JobAnalysis,
@@ -108,10 +115,10 @@ export class CVGeneratorService {
     // Score global (moyenne pondérée)
     const overallScore = Math.round(
       formatParsable * 0.15 +
-        keywordMatch * 0.4 + // Le plus important!
-        structureStandard * 0.2 +
-        dateFormat * 0.1 +
-        chronologyConsistent * 0.15
+      keywordMatch * 0.4 + // Le plus important!
+      structureStandard * 0.2 +
+      dateFormat * 0.1 +
+      chronologyConsistent * 0.15
     );
 
     return {

@@ -1,5 +1,12 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+/**
+ * @deprecated This client is deprecated for authentication flows.
+ * Use lib/db/client.ts for Client Components
+ * Use lib/db/server.ts for Server Components and Route Handlers
+ * This file is kept for backward compatibility with API routes.
+ */
+
 // Types générés depuis Supabase (à regénérer après création du schema)
 // npx supabase gen types typescript --project-id YOUR_PROJECT_ID > lib/db/database.types.ts
 

@@ -9,8 +9,9 @@ import { RiskAssessmentCard } from "@/components/preview/RiskAssessmentCard";
 import { CoverLetterPreview } from "@/components/preview/CoverLetterPreview";
 import { CoverLetterScoreCard } from "@/components/preview/CoverLetterScoreCard";
 import { CVGenerationResult } from "@/lib/types";
-import { CVGeneratorService } from "@/lib/services/cv-generator.service";
-import { CoverLetter, CoverLetterScore, CoverLetterGeneratorService } from "@/lib/services/cover-letter-generator.service";
+import { CVFormatterUtils } from "@/lib/utils/cv-formatter";
+import { CoverLetter, CoverLetterScore } from "@/lib/services/cover-letter-generator.service";
+import { CoverLetterFormatterUtils } from "@/lib/utils/cover-letter-formatter";
 
 type Variant = "mobile_developer" | "product_developer" | "project_manager";
 type OptimizationLevel = "safe" | "optimized" | "maximized";
@@ -280,7 +281,7 @@ export default function GeneratePage() {
 
   function handleExportText() {
     if (!result) return;
-    const text = CVGeneratorService.cvContentToText(result.content);
+    const text = CVFormatterUtils.cvContentToText(result.content);
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -291,7 +292,7 @@ export default function GeneratePage() {
 
   function handleExportLetter() {
     if (!letterResult) return;
-    const text = CoverLetterGeneratorService.convertCoverLetterToText(letterResult.coverLetter);
+    const text = CoverLetterFormatterUtils.convertCoverLetterToText(letterResult.coverLetter);
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -313,11 +314,10 @@ export default function GeneratePage() {
       <div className="flex gap-4 border-b-2 border-gray-200">
         <button
           onClick={() => setActiveTab("cv")}
-          className={`px-6 py-3 font-semibold transition-all relative ${
-            activeTab === "cv"
+          className={`px-6 py-3 font-semibold transition-all relative ${activeTab === "cv"
               ? "text-blue-600"
               : "text-gray-600 hover:text-gray-900"
-          }`}
+            }`}
         >
           CV
           {activeTab === "cv" && (
@@ -326,11 +326,10 @@ export default function GeneratePage() {
         </button>
         <button
           onClick={() => setActiveTab("letter")}
-          className={`px-6 py-3 font-semibold transition-all relative ${
-            activeTab === "letter"
+          className={`px-6 py-3 font-semibold transition-all relative ${activeTab === "letter"
               ? "text-blue-600"
               : "text-gray-600 hover:text-gray-900"
-          }`}
+            }`}
         >
           Lettre de Motivation
           {activeTab === "letter" && (
@@ -355,11 +354,10 @@ export default function GeneratePage() {
                 <button
                   key={variant.id}
                   onClick={() => setSelectedVariant(variant.id)}
-                  className={`p-6 rounded-lg border-2 transition-all text-left hover:shadow-md ${
-                    selectedVariant === variant.id
+                  className={`p-6 rounded-lg border-2 transition-all text-left hover:shadow-md ${selectedVariant === variant.id
                       ? "border-blue-600 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
-                  }`}
+                    }`}
                 >
                   <div className="text-4xl mb-3">{variant.icon}</div>
                   <h3 className="font-semibold text-lg mb-2">{variant.name}</h3>
@@ -382,11 +380,10 @@ export default function GeneratePage() {
                 <button
                   key={level.id}
                   onClick={() => setSelectedLevel(level.id)}
-                  className={`p-6 rounded-lg border-2 transition-all text-left hover:shadow-md ${
-                    selectedLevel === level.id
+                  className={`p-6 rounded-lg border-2 transition-all text-left hover:shadow-md ${selectedLevel === level.id
                       ? `border-blue-600 ${level.color}`
                       : "border-gray-200 hover:border-gray-300"
-                  }`}
+                    }`}
                 >
                   <div className="text-2xl mb-2">{level.badge}</div>
                   <h3 className="font-semibold text-lg mb-2">{level.name}</h3>
@@ -478,11 +475,10 @@ export default function GeneratePage() {
                 <button
                   key={level.id}
                   onClick={() => setSelectedLevel(level.id)}
-                  className={`p-6 rounded-lg border-2 transition-all text-left hover:shadow-md ${
-                    selectedLevel === level.id
+                  className={`p-6 rounded-lg border-2 transition-all text-left hover:shadow-md ${selectedLevel === level.id
                       ? `border-blue-600 ${level.color}`
                       : "border-gray-200 hover:border-gray-300"
-                  }`}
+                    }`}
                 >
                   <div className="text-2xl mb-2">{level.badge}</div>
                   <h3 className="font-semibold text-lg mb-2">{level.name}</h3>

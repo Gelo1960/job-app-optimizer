@@ -1,8 +1,9 @@
 "use client"
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/context/auth-context";
 import {
   BarChart3,
   Search,
@@ -10,15 +11,15 @@ import {
   ClipboardList,
   UserCircle,
   Sparkles,
-  LogOut
+  LogOut,
+  Settings
 } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
-  { name: "Analyze Job", href: "/dashboard/analyze", icon: Search },
-  { name: "Generate CV", href: "/dashboard/generate", icon: FileText },
   { name: "Applications", href: "/dashboard/applications", icon: ClipboardList },
   { name: "Profile", href: "/dashboard/profile", icon: UserCircle },
+  { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
 export default function DashboardLayout({
@@ -27,6 +28,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push('/login');
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -70,7 +78,7 @@ export default function DashboardLayout({
 
           {/* User section */}
           <div className="p-4 mt-auto mb-4">
-            <div className="glass-card !p-4 flex items-center gap-3 cursor-pointer hover:bg-white/60">
+            <div className="glass-card !p-4 flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-blue-400 to-purple-400 p-0.5">
                 <div className="h-full w-full rounded-full bg-white/90 flex items-center justify-center">
                   <UserCircle className="h-6 w-6 text-gray-400" />
@@ -84,7 +92,13 @@ export default function DashboardLayout({
                   Free Plan
                 </p>
               </div>
-              <LogOut className="h-4 w-4 text-muted-foreground hover:text-red-500 transition-colors" />
+              <button
+                onClick={handleLogout}
+                className="hover:bg-red-50 p-2 rounded-lg transition-colors"
+                title="Déconnexion"
+              >
+                <LogOut className="h-4 w-4 text-muted-foreground hover:text-red-500 transition-colors" />
+              </button>
             </div>
           </div>
         </div>
