@@ -3,6 +3,8 @@
  * Automatically detects and uses available API keys
  */
 
+import { ApiKeysService, AIProvider } from './api-keys.service';
+
 interface AIMessage {
     role: 'user' | 'assistant' | 'system';
     content: string;
@@ -13,35 +15,75 @@ interface AIResponse {
     provider: 'gemini' | 'deepseek' | 'anthropic';
 }
 
+interface ProviderKeys {
+    gemini?: string;
+    deepseek?: string;
+    anthropic?: string;
+}
+
 export class AIService {
-    private static getAvailableProvider(): 'gemini' | 'deepseek' | 'anthropic' | null {
-        if (process.env.GEMINI_API_KEY) return 'gemini';
-        if (process.env.DEEPSEEK_API_KEY) return 'deepseek';
-        if (process.env.ANTHROPIC_API_KEY) return 'anthropic';
+    /**
+     * Get available API keys, prioritizing user keys over environment variables
+     */
+    private static async getAvailableKeys(userId?: string): Promise<ProviderKeys> {
+        const keys: ProviderKeys = {};
+
+        // Try to get user's stored keys first
+        if (userId) {
+            const providers: AIProvider[] = ['gemini', 'deepseek', 'anthropic'];
+
+            for (const provider of providers) {
+                const { data } = await ApiKeysService.getApiKey(userId, provider);
+                if (data) {
+                    keys[provider] = data;
+                }
+            }
+        }
+
+        // Fallback to environment variables
+        if (!keys.gemini && process.env.GEMINI_API_KEY) {
+            keys.gemini = process.env.GEMINI_API_KEY;
+        }
+        if (!keys.deepseek && process.env.DEEPSEEK_API_KEY) {
+            keys.deepseek = process.env.DEEPSEEK_API_KEY;
+        }
+        if (!keys.anthropic && process.env.ANTHROPIC_API_KEY) {
+            keys.anthropic = process.env.ANTHROPIC_API_KEY;
+        }
+
+        return keys;
+    }
+
+    private static getAvailableProvider(keys: ProviderKeys): 'gemini' | 'deepseek' | 'anthropic' | null {
+        if (keys.gemini) return 'gemini';
+        if (keys.deepseek) return 'deepseek';
+        if (keys.anthropic) return 'anthropic';
         return null;
     }
 
     /**
      * Send a prompt and get a text response
+     * @param userId - Optional user ID to use user's stored API keys
      */
     static async sendPrompt(
         prompt: string,
         systemPrompt?: string,
-        options?: { temperature?: number; maxTokens?: number }
+        options?: { temperature?: number; maxTokens?: number; userId?: string }
     ): Promise<AIResponse> {
-        const provider = this.getAvailableProvider();
+        const keys = await this.getAvailableKeys(options?.userId);
+        const provider = this.getAvailableProvider(keys);
 
         if (!provider) {
-            throw new Error('No AI API key configured. Please add GEMINI_API_KEY, DEEPSEEK_API_KEY, or ANTHROPIC_API_KEY to .env.local');
+            throw new Error('Aucune clé API configurée. Veuillez ajouter vos clés dans les Paramètres.');
         }
 
         switch (provider) {
             case 'gemini':
-                return await this.callGemini(prompt, systemPrompt, options);
+                return await this.callGemini(keys.gemini!, prompt, systemPrompt, options);
             case 'deepseek':
-                return await this.callDeepSeek(prompt, systemPrompt, options);
+                return await this.callDeepSeek(keys.deepseek!, prompt, systemPrompt, options);
             case 'anthropic':
-                return await this.callAnthropic(prompt, systemPrompt, options);
+                return await this.callAnthropic(keys.anthropic!, prompt, systemPrompt, options);
         }
     }
 
@@ -51,7 +93,7 @@ export class AIService {
     static async sendPromptJSON<T>(
         prompt: string,
         systemPrompt?: string,
-        options?: { temperature?: number; maxTokens?: number }
+        options?: { temperature?: number; maxTokens?: number; userId?: string }
     ): Promise<T> {
         const response = await this.sendPrompt(prompt, systemPrompt, options);
         return this.parseJSON<T>(response.text);
@@ -61,12 +103,13 @@ export class AIService {
     // GEMINI IMPLEMENTATION
     // ========================================================================
     private static async callGemini(
+        apiKey: string,
         prompt: string,
         systemPrompt?: string,
         options?: { temperature?: number; maxTokens?: number }
     ): Promise<AIResponse> {
         const { GoogleGenerativeAI } = await import('@google/generative-ai');
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+        const genAI = new GoogleGenerativeAI(apiKey);
 
         const model = genAI.getGenerativeModel({
             model: 'gemini-2.0-flash-exp',
@@ -91,6 +134,7 @@ export class AIService {
     // DEEPSEEK IMPLEMENTATION (OpenAI-compatible)
     // ========================================================================
     private static async callDeepSeek(
+        apiKey: string,
         prompt: string,
         systemPrompt?: string,
         options?: { temperature?: number; maxTokens?: number }
@@ -107,7 +151,7 @@ export class AIService {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+                'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
                 model: 'deepseek-chat',
@@ -132,13 +176,14 @@ export class AIService {
     // ANTHROPIC IMPLEMENTATION
     // ========================================================================
     private static async callAnthropic(
+        apiKey: string,
         prompt: string,
         systemPrompt?: string,
         options?: { temperature?: number; maxTokens?: number }
     ): Promise<AIResponse> {
         const Anthropic = await import('@anthropic-ai/sdk');
         const anthropic = new Anthropic.default({
-            apiKey: process.env.ANTHROPIC_API_KEY!,
+            apiKey,
         });
 
         const response = await anthropic.messages.create({
