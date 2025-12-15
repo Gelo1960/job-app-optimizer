@@ -3,16 +3,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Plus,
   Search,
@@ -21,22 +11,11 @@ import {
   Briefcase,
   MapPin,
   Building2,
-  Calendar,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  Link as LinkIcon
+  Calendar
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Application, ApplicationStatus } from "@/lib/types";
 
-// Mock data generator for demo purposes if API fails or is empty
-const MOCK_APPS: Application[] = [
-  { id: '1', company: 'Airbnb', jobTitle: 'Senior Frontend Engineer', status: 'interview', appliedDate: '2023-10-15', location: 'Remote', logo: 'A' },
-  { id: '2', company: 'Linear', jobTitle: 'Product Designer', status: 'pending', appliedDate: '2023-10-18', location: 'San Francisco', logo: 'L' },
-  { id: '3', company: 'Stripe', jobTitle: 'Fullstack Developer', status: 'rejected', appliedDate: '2023-10-10', location: 'Dublin', logo: 'S' },
-  { id: '4', company: 'Vercel', jobTitle: 'Developer Advocate', status: 'offer', appliedDate: '2023-10-20', location: 'Remote', logo: 'V' },
-] as any;
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -53,12 +32,11 @@ export default function ApplicationsPage() {
         if (data.data && data.data.length > 0) {
           setApplications(data.data);
         } else {
-          // Fallback to mock data for layout demonstration if empty
-          setApplications(MOCK_APPS);
+          setApplications([]);
         }
       } catch (e) {
-        console.error(e);
-        setApplications(MOCK_APPS);
+        console.error('Erreur lors du chargement des candidatures:', e);
+        setApplications([]);
       } finally {
         setIsLoading(false);
       }
@@ -103,17 +81,49 @@ export default function ApplicationsPage() {
     }
   };
 
+  // Calcul des statistiques
+  const stats = {
+    total: applications.length,
+    pending: applications.filter(a => ['pending', 'sent'].includes(a.status)).length,
+    active: applications.filter(a => ['interview', 'offer', 'response_positive'].includes(a.status)).length,
+    archived: applications.filter(a => ['rejected', 'ghosted', 'response_negative'].includes(a.status)).length,
+  };
+
   return (
-    <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Candidatures</h1>
-          <p className="text-gray-500 mt-1">Gérez votre pipeline de recrutement</p>
+    <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Header avec statistiques */}
+      <div className="relative overflow-hidden rounded-3xl p-8 glass-card">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-pink-500/5 pointer-events-none"></div>
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6">
+          <div>
+            <h1 className="text-4xl font-bold text-gradient mb-2">Candidatures</h1>
+            <p className="text-muted-foreground text-lg">Suivez votre pipeline de recrutement en temps réel</p>
+          </div>
+
+          {/* Stats rapides */}
+          <div className="flex items-center gap-4">
+            <div className="text-center px-4 py-2 rounded-widget bg-white/50 backdrop-blur-sm">
+              <div className="text-3xl font-bold text-gradient">{stats.total}</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">Total</div>
+            </div>
+            <div className="text-center px-4 py-2 rounded-widget bg-orange-50/50 backdrop-blur-sm">
+              <div className="text-3xl font-bold text-orange-600">{stats.pending}</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">En attente</div>
+            </div>
+            <div className="text-center px-4 py-2 rounded-widget bg-green-50/50 backdrop-blur-sm">
+              <div className="text-3xl font-bold text-green-600">{stats.active}</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">Actives</div>
+            </div>
+          </div>
         </div>
-        <Button className="rounded-full bg-black text-white hover:bg-gray-800 shadow-lg shadow-gray-200">
-          <Plus className="mr-2 h-4 w-4" /> Nouvelle candidature
-        </Button>
+
+        {/* CTA Button */}
+        <div className="relative z-10 mt-6">
+          <Button className="btn-gradient gap-2 hover:scale-105 active:scale-95 transition-transform">
+            <Plus className="h-4 w-4" /> Nouvelle candidature
+          </Button>
+        </div>
       </div>
 
       {/* Search & Filter Bar */}
@@ -133,72 +143,133 @@ export default function ApplicationsPage() {
         </Button>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs améliorés */}
       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
         {[
-          { id: 'all', label: 'Toutes' },
-          { id: 'pending', label: 'En attente' },
-          { id: 'active', label: 'Actives' },
-          { id: 'archived', label: 'Archivées' }
+          { id: 'all', label: 'Toutes', count: stats.total },
+          { id: 'pending', label: 'En attente', count: stats.pending },
+          { id: 'active', label: 'Actives', count: stats.active },
+          { id: 'archived', label: 'Archivées', count: stats.archived }
         ].map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as 'all' | 'pending' | 'active' | 'archived')}
             className={cn(
-              "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all",
+              "px-5 py-2.5 rounded-button text-sm font-semibold whitespace-nowrap transition-all flex items-center gap-2",
               activeTab === tab.id
-                ? "bg-black text-white shadow-md"
-                : "bg-white text-gray-600 hover:bg-gray-50 border border-transparent"
+                ? "btn-gradient shadow-lg"
+                : "glass-card hover:bg-white/60 text-muted-foreground"
             )}
           >
             {tab.label}
+            <span className={cn(
+              "px-2 py-0.5 rounded-full text-xs font-bold",
+              activeTab === tab.id
+                ? "bg-white/20 text-white"
+                : "bg-primary/10 text-primary"
+            )}>
+              {tab.count}
+            </span>
           </button>
         ))}
       </div>
 
-      {/* Card List (iPhone Style) */}
-      <div className="space-y-3">
-        {filteredApps.map((app) => (
-          <div
-            key={app.id}
-            className="group relative bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.99]"
-          >
-            <div className="flex items-start gap-4">
-              {/* Logo Placeholder */}
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-lg font-bold text-gray-500 shrink-0">
-                {app.company.charAt(0)}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-bold text-gray-900 truncate pr-4">{app.jobTitle}</h3>
-                    <p className="text-gray-500 font-medium text-sm">{app.company}</p>
+      {/* Card List avec animations staggered */}
+      <div className="space-y-4">
+        {isLoading ? (
+          // Loading skeleton
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="widget-card animate-pulse">
+                <div className="flex items-start gap-4">
+                  <div className="h-14 w-14 rounded-widget bg-gray-200"></div>
+                  <div className="flex-1 space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+                    <div className="flex gap-2">
+                      <div className="h-6 bg-gray-100 rounded w-20"></div>
+                      <div className="h-6 bg-gray-100 rounded w-16"></div>
+                    </div>
                   </div>
-                  <span className="text-xs text-gray-400 whitespace-nowrap font-medium">
-                    {new Date(app.appliedDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          filteredApps.map((app, index) => (
+            <div
+              key={app.id}
+              className="widget-card-hover group relative cursor-pointer animate-in fade-in slide-in-from-bottom-2 duration-500"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <div className="flex items-start gap-4">
+                {/* Logo avec gradient */}
+                <div className="h-14 w-14 rounded-widget gradient-primary flex items-center justify-center text-xl font-bold text-white shadow-glow shrink-0">
+                  {app.company.charAt(0)}
                 </div>
 
-                <div className="flex items-center gap-3 mt-3">
-                  <span className={cn("px-2.5 py-1 rounded-lg text-xs font-semibold border", getStatusColor(app.status))}>
-                    {getStatusLabel(app.status)}
-                  </span>
-
-                  <div className="flex items-center gap-1 text-xs text-gray-400">
-                    <MapPin className="h-3 w-3" />
-                    {app.location || "Remote"}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-bold text-foreground text-lg truncate pr-4 group-hover:text-gradient transition-all">
+                        {app.jobTitle}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        <p className="text-muted-foreground font-medium text-sm">{app.company}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-xs text-muted-foreground whitespace-nowrap font-medium flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(app.appliedDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
                   </div>
+
+                  <div className="flex items-center gap-3 mt-3">
+                    <span className={cn(
+                      "px-3 py-1.5 rounded-button text-xs font-bold border shadow-soft",
+                      getStatusColor(app.status)
+                    )}>
+                      {getStatusLabel(app.status)}
+                    </span>
+
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5" />
+                      {app.location || "Remote"}
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+              {/* Hover indicator */}
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <MoreHorizontal className="h-4 w-4 text-primary" />
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
 
-        {filteredApps.length === 0 && (
-          <div className="text-center py-20 text-gray-400">
-            <Briefcase className="h-12 w-12 mx-auto mb-3 opacity-20" />
-            <p>Aucune candidature trouvée</p>
+        {!isLoading && filteredApps.length === 0 && (
+          <div className="text-center py-20 glass-card rounded-3xl">
+            <div className="inline-flex h-16 w-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 items-center justify-center mb-4">
+              <Briefcase className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Aucune candidature trouvée</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              {searchQuery
+                ? "Essayez de modifier votre recherche"
+                : "Commencez à ajouter vos candidatures"}
+            </p>
+            {!searchQuery && (
+              <Button className="btn-gradient gap-2">
+                <Plus className="h-4 w-4" /> Ajouter ma première candidature
+              </Button>
+            )}
           </div>
         )}
       </div>

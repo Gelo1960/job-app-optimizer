@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CVGeneratorService } from '@/lib/services/cv-generator.service';
-import { supabase } from '@/lib/db/supabase';
+import { getAuthenticatedClient } from '@/lib/db/server-actions';
 import { UserProfile, JobAnalysis } from '@/lib/types';
 
 /**
@@ -9,6 +9,7 @@ import { UserProfile, JobAnalysis } from '@/lib/types';
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await getAuthenticatedClient();
     const body = await request.json();
     const { userProfileId, jobAnalysis, variant, optimizationLevel } = body;
 

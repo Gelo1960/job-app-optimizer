@@ -28,6 +28,10 @@ const statusLabels: Record<ApplicationStatus, { label: string; variant: any }> =
   response_positive: { label: "Positive", variant: "default" },
   response_negative: { label: "Négative", variant: "destructive" },
   no_response: { label: "Pas de réponse", variant: "outline" },
+  interview: { label: "Entretien", variant: "default" },
+  offer: { label: "Offre reçue", variant: "success" },
+  rejected: { label: "Rejeté", variant: "destructive" },
+  ghosted: { label: "Ghosté", variant: "outline" },
 };
 
 const channelLabels: Record<string, string> = {

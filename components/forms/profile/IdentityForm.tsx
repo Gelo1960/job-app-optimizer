@@ -7,7 +7,7 @@ import { IdentitySchema, IdentityFormValues } from "@/lib/schemas/profile.schema
 import { UserProfile } from "@/lib/types";
 import { User, Mail, Phone, MapPin, Linkedin, Github, Globe, Save } from "lucide-react";
 import { useState } from "react";
-import { ProfileService } from "@/lib/services/profile.service";
+import { ProfileClientService } from "@/lib/services/profile.client.service";
 
 interface IdentityFormProps {
     initialData: Partial<UserProfile>;
@@ -37,7 +37,7 @@ export function IdentityForm({ initialData, userId }: IdentityFormProps) {
         setIsSaving(true);
         setSuccessMsg("");
         try {
-            const { error } = await ProfileService.updateIdentity(userId, data);
+            const { error } = await ProfileClientService.updateIdentity(userId, data);
             if (error) throw error;
             setSuccessMsg("Profil mis à jour !");
             setTimeout(() => setSuccessMsg(""), 3000);
@@ -49,19 +49,26 @@ export function IdentityForm({ initialData, userId }: IdentityFormProps) {
     };
 
     return (
-        <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Col - Personal Details */}
-            <div className="lg:col-span-1 space-y-6">
-                <section className="glass-card space-y-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                                <User className="h-5 w-5" />
-                            </div>
-                            <h2 className="text-xl font-semibold">Identité</h2>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Personal Details Card */}
+            <section className="widget-card-hover space-y-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-widget gradient-primary flex items-center justify-center text-white shadow-glow">
+                            <User className="h-6 w-6" />
                         </div>
-                        {successMsg && <span className="text-xs text-green-600 font-medium">{successMsg}</span>}
+                        <div>
+                            <h2 className="text-xl font-bold">Identité</h2>
+                            <p className="text-xs text-muted-foreground">Informations personnelles</p>
+                        </div>
                     </div>
+                    {successMsg && (
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Save className="h-3 w-3" />
+                            <span className="text-xs font-medium">{successMsg}</span>
+                        </div>
+                    )}
+                </div>
 
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
@@ -109,12 +116,15 @@ export function IdentityForm({ initialData, userId }: IdentityFormProps) {
                     </div>
                 </section>
 
-                <section className="glass-card space-y-6">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/20">
-                            <Globe className="h-5 w-5" />
+                <section className="widget-card-hover space-y-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="h-12 w-12 rounded-widget gradient-sunset flex items-center justify-center text-white shadow-glow">
+                            <Globe className="h-6 w-6" />
                         </div>
-                        <h2 className="text-xl font-semibold">Réseaux</h2>
+                        <div>
+                            <h2 className="text-xl font-bold">Réseaux</h2>
+                            <p className="text-xs text-muted-foreground">Liens professionnels</p>
+                        </div>
                     </div>
 
                     <div className="space-y-4">
@@ -140,16 +150,21 @@ export function IdentityForm({ initialData, userId }: IdentityFormProps) {
                     <button
                         type="submit"
                         disabled={isSaving}
-                        className="w-full mt-4 glass px-6 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-primary to-purple-600 shadow-lg shadow-primary/25 hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="btn-gradient w-full mt-6 px-6 py-3 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] transition-transform"
                     >
-                        {isSaving ? <span className="animate-spin">⏳</span> : <Save className="h-4 w-4" />}
-                        {isSaving ? "Sauvegarde..." : "Sauvegarder Identité"}
+                        {isSaving ? (
+                            <>
+                                <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                <span>Sauvegarde en cours...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Save className="h-4 w-4" />
+                                <span>Sauvegarder les modifications</span>
+                            </>
+                        )}
                     </button>
                 </section>
-            </div>
-
-            {/* Right Column slot (will be filled by other components in parent) */}
-            <div id="profile-right-column" className="lg:col-span-2 space-y-6 hidden"></div>
         </form>
     );
 }

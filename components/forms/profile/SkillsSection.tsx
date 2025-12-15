@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { UserProfile } from "@/lib/types";
-import { ProfileService } from "@/lib/services/profile.service";
+import { ProfileClientService } from "@/lib/services/profile.client.service";
 import { Code2, Plus, Sparkles, Trash2, X } from "lucide-react";
 
 interface SkillsSectionProps {
@@ -41,7 +41,7 @@ export function SkillsSection({ initialSkills, userId, onRefresh }: SkillsSectio
                 business: initialSkills?.business || [],
                 languages: initialSkills?.languages || []
             };
-            await ProfileService.updateSkills(userId, payload);
+            await ProfileClientService.updateSkills(userId, payload);
             onRefresh();
         } catch (err) {
             console.error(err);

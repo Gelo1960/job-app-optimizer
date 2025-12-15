@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { coldEmailGeneratorService } from '@/lib/services/cold-email-generator.service';
 import { ColdEmail, EmailTone, JobAnalysis, CompanyEnrichment, Contact } from '@/lib/types';
-import { supabase } from '@/lib/db/supabase';
+import { getAuthenticatedClient } from '@/lib/db/server-actions';
 
 // ============================================================================
 // POST /api/generate-cold-email
@@ -14,6 +14,7 @@ import { supabase } from '@/lib/db/supabase';
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await getAuthenticatedClient();
     const body = await request.json();
     const {
       userProfileId,
@@ -111,6 +112,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await getAuthenticatedClient();
     const searchParams = request.nextUrl.searchParams;
     const userProfileId = searchParams.get('userProfileId');
 

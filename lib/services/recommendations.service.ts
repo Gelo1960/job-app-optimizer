@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/db/supabase';
+import { getAuthenticatedClient } from '@/lib/db/server-actions';
 import type { VariantPerformance, ChannelPerformance } from './analytics.service';
 
 // ============================================================================
@@ -41,6 +41,7 @@ export class RecommendationsService {
    * Récupère le user_profile_id à partir du user_id (auth)
    */
   private async getUserProfileId(userId?: string): Promise<string | null> {
+    const supabase = await getAuthenticatedClient();
     const { data: { user } } = await supabase.auth.getUser();
     const authUserId = userId || user?.id;
 
@@ -67,6 +68,7 @@ export class RecommendationsService {
    */
   async generateRecommendations(userProfileId?: string): Promise<RecommendationsResult> {
     try {
+      const supabase = await getAuthenticatedClient();
       const profileId = userProfileId || await this.getUserProfileId();
       if (!profileId) {
         return this.getInsufficientDataResponse(0);
@@ -139,6 +141,7 @@ export class RecommendationsService {
   private async analyzeVariants(userProfileId: string): Promise<Recommendation[]> {
     const recommendations: Recommendation[] = [];
 
+    const supabase = await getAuthenticatedClient();
     const { data, error } = await supabase
       .from('variant_performance')
       .select('*')
@@ -220,6 +223,7 @@ export class RecommendationsService {
   private async analyzeChannels(userProfileId: string): Promise<Recommendation[]> {
     const recommendations: Recommendation[] = [];
 
+    const supabase = await getAuthenticatedClient();
     const { data, error } = await supabase
       .from('channel_performance')
       .select('*')
@@ -278,6 +282,7 @@ export class RecommendationsService {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    const supabase = await getAuthenticatedClient();
     const { data, error } = await supabase
       .from('applications')
       .select('id, applied_date')
@@ -323,6 +328,7 @@ export class RecommendationsService {
   private async analyzeConsistency(userProfileId: string): Promise<Recommendation[]> {
     const recommendations: Recommendation[] = [];
 
+    const supabase = await getAuthenticatedClient();
     const { data, error } = await supabase
       .from('applications')
       .select('id, applied_date, status, response_date')

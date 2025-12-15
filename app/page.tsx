@@ -1,26 +1,16 @@
-'use client';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/db/server';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/context/auth-context';
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-export default function Home() {
-  const router = useRouter();
-  const { user, loading } = useAuth();
+  if (user) {
+    redirect('/dashboard');
+  } else {
+    redirect('/login');
+  }
 
-  useEffect(() => {
-    if (!loading) {
-      if (user) {
-        router.push('/dashboard');
-      } else {
-        router.push('/login');
-      }
-    }
-  }, [user, loading, router]);
-
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin text-4xl">⏳</div>
-    </div>
-  );
+  // Ce code ne sera jamais exécuté car redirect lance une exception
+  return null;
 }

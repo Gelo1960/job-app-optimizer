@@ -1,12 +1,16 @@
+/**
+ * Client-side Profile Service
+ * Utilise les routes API pour les opérations depuis les Client Components
+ */
 
-import { getAuthenticatedClient } from '@/lib/db/server-actions';
+import { createClient } from '@/lib/db/client';
 import { UserProfile, Experience, Education, Project } from '@/lib/types';
 import { PostgrestError } from '@supabase/supabase-js';
 
-export class ProfileService {
+export class ProfileClientService {
 
     static async getFullProfile(userId: string): Promise<{ data: UserProfile | null; error: PostgrestError | null }> {
-        const supabase = await getAuthenticatedClient();
+        const supabase = createClient();
 
         const { data: profile, error: profileError } = await supabase
             .from('user_profiles')
@@ -39,7 +43,7 @@ export class ProfileService {
 
     // UPDATE IDENTITY
     static async updateIdentity(userId: string, data: Partial<UserProfile>) {
-        const supabase = await getAuthenticatedClient();
+        const supabase = createClient();
         return await supabase
             .from('user_profiles')
             .update(data)
@@ -48,14 +52,14 @@ export class ProfileService {
 
     // EXPERIENCES
     static async addExperience(userId: string, experience: Omit<Experience, 'id'>) {
-        const supabase = await getAuthenticatedClient();
+        const supabase = createClient();
         return await supabase
             .from('experiences')
             .insert({ ...experience, user_id: userId });
     }
 
     static async updateExperience(id: string, experience: Partial<Experience>) {
-        const supabase = await getAuthenticatedClient();
+        const supabase = createClient();
         return await supabase
             .from('experiences')
             .update(experience)
@@ -63,7 +67,7 @@ export class ProfileService {
     }
 
     static async deleteExperience(id: string) {
-        const supabase = await getAuthenticatedClient();
+        const supabase = createClient();
         return await supabase
             .from('experiences')
             .delete()
@@ -72,14 +76,14 @@ export class ProfileService {
 
     // EDUCATION
     static async addEducation(userId: string, education: Omit<Education, 'id'>) {
-        const supabase = await getAuthenticatedClient();
+        const supabase = createClient();
         return await supabase
             .from('education')
             .insert({ ...education, user_id: userId });
     }
 
     static async updateEducation(id: string, education: Partial<Education>) {
-        const supabase = await getAuthenticatedClient();
+        const supabase = createClient();
         return await supabase
             .from('education')
             .update(education)
@@ -87,7 +91,7 @@ export class ProfileService {
     }
 
     static async deleteEducation(id: string) {
-        const supabase = await getAuthenticatedClient();
+        const supabase = createClient();
         return await supabase
             .from('education')
             .delete()
@@ -96,14 +100,14 @@ export class ProfileService {
 
     // PROJECTS
     static async addProject(userId: string, project: Omit<Project, 'id'>) {
-        const supabase = await getAuthenticatedClient();
+        const supabase = createClient();
         return await supabase
             .from('projects')
             .insert({ ...project, user_id: userId });
     }
 
     static async updateProject(id: string, project: Partial<Project>) {
-        const supabase = await getAuthenticatedClient();
+        const supabase = createClient();
         return await supabase
             .from('projects')
             .update(project)
@@ -111,7 +115,7 @@ export class ProfileService {
     }
 
     static async deleteProject(id: string) {
-        const supabase = await getAuthenticatedClient();
+        const supabase = createClient();
         return await supabase
             .from('projects')
             .delete()
@@ -120,7 +124,7 @@ export class ProfileService {
 
     // SKILLS
     static async updateSkills(userId: string, skills: any) {
-        const supabase = await getAuthenticatedClient();
+        const supabase = createClient();
 
         // Check if skills exist for user
         const { data: existing } = await supabase.from('skills').select('id').eq('user_id', userId).single();

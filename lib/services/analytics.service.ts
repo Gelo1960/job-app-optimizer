@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/db/supabase';
+import { getAuthenticatedClient, getAuthenticatedUser } from '@/lib/db/server-actions';
 import type { Application, ABTestResult, ApplicationStatus } from '@/lib/types';
 
 // ============================================================================
@@ -98,25 +98,42 @@ export class AnalyticsService {
    * Récupère le user_profile_id à partir du user_id (auth)
    */
   private async getUserProfileId(userId?: string): Promise<string | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    const authUserId = userId || user?.id;
+    const supabase = await getAuthenticatedClient();
 
-    if (!authUserId) {
-      return null;
+    // Si userId fourni, l'utiliser directement
+    if (userId) {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
+
+      if (error || !data) {
+        console.error('Error fetching user profile:', error);
+        return null;
+      }
+
+      return data.id;
     }
 
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('user_id', authUserId)
-      .single();
+    // Sinon, obtenir l'utilisateur authentifié
+    try {
+      const user = await getAuthenticatedUser();
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-    if (error || !data) {
-      console.error('Error fetching user profile:', error);
+      if (error || !data) {
+        console.error('Error fetching user profile:', error);
+        return null;
+      }
+
+      return data.id;
+    } catch {
       return null;
     }
-
-    return data.id;
   }
 
   /**
@@ -124,6 +141,8 @@ export class AnalyticsService {
    */
   async trackApplication(input: CreateApplicationInput): Promise<Application | null> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const { data, error } = await supabase
         .from('applications')
         .insert({
@@ -172,6 +191,8 @@ export class AnalyticsService {
     update: UpdateApplicationStatusInput
   ): Promise<boolean> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const { error } = await supabase
         .from('applications')
         .update({
@@ -219,6 +240,8 @@ export class AnalyticsService {
     }
   ): Promise<Application[]> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const profileId = userProfileId || await this.getUserProfileId();
       if (!profileId) return [];
 
@@ -263,6 +286,8 @@ export class AnalyticsService {
    */
   async getApplicationStats(userProfileId?: string): Promise<ApplicationStats | null> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const profileId = userProfileId || await this.getUserProfileId();
       if (!profileId) return null;
 
@@ -287,6 +312,8 @@ export class AnalyticsService {
    */
   async getUserStatistics(userProfileId?: string): Promise<UserStatistics | null> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const profileId = userProfileId || await this.getUserProfileId();
       if (!profileId) return null;
 
@@ -316,6 +343,8 @@ export class AnalyticsService {
    */
   async getABTestResults(userProfileId?: string): Promise<ABTestResult[]> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const profileId = userProfileId || await this.getUserProfileId();
       if (!profileId) return [];
 
@@ -347,6 +376,8 @@ export class AnalyticsService {
    */
   async getPerformanceByVariant(userProfileId?: string): Promise<VariantPerformance[]> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const profileId = userProfileId || await this.getUserProfileId();
       if (!profileId) return [];
 
@@ -372,6 +403,8 @@ export class AnalyticsService {
    */
   async getPerformanceByChannel(userProfileId?: string): Promise<ChannelPerformance[]> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const profileId = userProfileId || await this.getUserProfileId();
       if (!profileId) return [];
 
@@ -397,6 +430,8 @@ export class AnalyticsService {
    */
   async getTimeSeriesData(userProfileId?: string, weeks: number = 12): Promise<TimeSeriesData[]> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const profileId = userProfileId || await this.getUserProfileId();
       if (!profileId) return [];
 
@@ -428,6 +463,8 @@ export class AnalyticsService {
     metadata: Record<string, any> = {}
   ): Promise<boolean> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const { error } = await supabase.from('application_events').insert({
         application_id: applicationId,
         event_type: eventType,
@@ -451,6 +488,8 @@ export class AnalyticsService {
    */
   async getApplicationEvents(applicationId: string): Promise<ApplicationEvent[]> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const { data, error } = await supabase
         .from('application_events')
         .select('*')
@@ -474,6 +513,8 @@ export class AnalyticsService {
    */
   async deleteApplication(applicationId: string): Promise<boolean> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const { error } = await supabase
         .from('applications')
         .delete()
@@ -499,6 +540,8 @@ export class AnalyticsService {
    */
   async refreshAnalytics(): Promise<boolean> {
     try {
+      const supabase = await getAuthenticatedClient();
+
       const { error } = await supabase.rpc('refresh_analytics_views');
 
       if (error) {
@@ -540,6 +583,10 @@ export class AnalyticsService {
       response_positive: 'response_received',
       response_negative: 'application_rejected',
       no_response: 'other',
+      interview: 'interview_scheduled',
+      offer: 'offer_received',
+      rejected: 'application_rejected',
+      ghosted: 'ghosted',
     };
 
     return mapping[status] || null;

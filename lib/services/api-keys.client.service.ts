@@ -1,4 +1,4 @@
-import { getAuthenticatedClient } from '@/lib/db/server-actions';
+import { createClient } from '@/lib/db/client';
 import { EncryptionService } from './encryption.service';
 
 export type AIProvider = 'gemini' | 'deepseek' | 'anthropic';
@@ -12,13 +12,17 @@ export interface ApiKey {
     updated_at: string;
 }
 
-export class ApiKeysService {
+/**
+ * Client-side API Keys Service
+ * For use in Client Components (browser)
+ */
+export class ApiKeysClientService {
     /**
      * Save or update an API key for the current user
      */
     static async saveApiKey(userId: string, provider: AIProvider, apiKey: string): Promise<{ error: Error | null }> {
         try {
-            const supabase = await getAuthenticatedClient();
+            const supabase = createClient();
             const encryptedKey = await EncryptionService.encrypt(apiKey);
 
             const { error } = await supabase
@@ -45,7 +49,7 @@ export class ApiKeysService {
      */
     static async getApiKey(userId: string, provider: AIProvider): Promise<{ data: string | null; error: Error | null }> {
         try {
-            const supabase = await getAuthenticatedClient();
+            const supabase = createClient();
             const { data, error } = await supabase
                 .from('user_api_keys')
                 .select('encrypted_key')
@@ -71,14 +75,18 @@ export class ApiKeysService {
      */
     static async listUserKeys(userId: string): Promise<{ data: ApiKey[] | null; error: Error | null }> {
         try {
-            const supabase = await getAuthenticatedClient();
+            const supabase = createClient();
             const { data, error } = await supabase
                 .from('user_api_keys')
                 .select('*')
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false });
 
-            return { data, error };
+            if (error) {
+                return { data: null, error };
+            }
+
+            return { data: data as ApiKey[], error: null };
         } catch (err) {
             console.error('Error listing API keys:', err);
             return { data: null, error: err as Error };
@@ -90,7 +98,7 @@ export class ApiKeysService {
      */
     static async deleteApiKey(userId: string, provider: AIProvider): Promise<{ error: Error | null }> {
         try {
-            const supabase = await getAuthenticatedClient();
+            const supabase = createClient();
             const { error } = await supabase
                 .from('user_api_keys')
                 .delete()
@@ -105,37 +113,64 @@ export class ApiKeysService {
     }
 
     /**
-     * Test if an API key works by making a simple API call
+     * Test if an API key is valid for a given provider
      */
-    static async testApiKey(provider: AIProvider, apiKey: string): Promise<{ success: boolean; error?: string }> {
+    static async testApiKey(provider: AIProvider, apiKey: string): Promise<{ success: boolean; error: string | null }> {
+        // This method doesn't use Supabase, just makes an API call to test the key
         try {
-            // Simple validation: just check if the key format looks correct
-            if (!apiKey || apiKey.length < 10) {
-                return { success: false, error: 'Clé API invalide' };
-            }
-
-            // TODO: Make actual API calls to test the keys
-            // For now, just validate the format
             switch (provider) {
-                case 'gemini':
-                    if (!apiKey.startsWith('AIza')) {
-                        return { success: false, error: 'Format de clé Gemini invalide' };
-                    }
-                    break;
-                case 'deepseek':
-                    if (!apiKey.startsWith('sk-')) {
-                        return { success: false, error: 'Format de clé DeepSeek invalide' };
-                    }
-                    break;
                 case 'anthropic':
-                    if (!apiKey.startsWith('sk-ant-')) {
-                        return { success: false, error: 'Format de clé Anthropic invalide' };
-                    }
-                    break;
-            }
+                    const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': apiKey,
+                            'anthropic-version': '2023-06-01',
+                        },
+                        body: JSON.stringify({
+                            model: 'claude-3-haiku-20240307',
+                            max_tokens: 10,
+                            messages: [{ role: 'user', content: 'test' }],
+                        }),
+                    });
 
-            return { success: true };
+                    return { success: anthropicResponse.ok, error: null };
+
+                case 'gemini':
+                    const geminiResponse = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: 'test' }] }],
+                            }),
+                        }
+                    );
+
+                    return { success: geminiResponse.ok, error: null };
+
+                case 'deepseek':
+                    const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`,
+                        },
+                        body: JSON.stringify({
+                            model: 'deepseek-chat',
+                            messages: [{ role: 'user', content: 'test' }],
+                            max_tokens: 10,
+                        }),
+                    });
+
+                    return { success: deepseekResponse.ok, error: null };
+
+                default:
+                    return { success: false, error: 'Unknown provider' };
+            }
         } catch (err) {
+            console.error('Error testing API key:', err);
             return { success: false, error: (err as Error).message };
         }
     }

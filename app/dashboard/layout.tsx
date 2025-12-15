@@ -1,23 +1,23 @@
 "use client"
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/context/auth-context";
 import {
   BarChart3,
-  Search,
-  FileText,
   ClipboardList,
   UserCircle,
   Sparkles,
   LogOut,
-  Settings
+  Settings,
+  TrendingUp
 } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
   { name: "Applications", href: "/dashboard/applications", icon: ClipboardList },
+  { name: "Analytics", href: "/dashboard/analytics", icon: TrendingUp },
   { name: "Profile", href: "/dashboard/profile", icon: UserCircle },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
@@ -28,12 +28,22 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { signOut } = useAuth();
 
   const handleLogout = async () => {
-    await signOut();
-    router.push('/login');
+    try {
+      console.log('🚪 Déconnexion en cours...');
+      const { error } = await signOut();
+      if (error) {
+        console.error('❌ Erreur lors de la déconnexion:', error);
+        alert('Erreur lors de la déconnexion. Veuillez réessayer.');
+      } else {
+        console.log('✅ Déconnexion réussie');
+      }
+    } catch (err) {
+      console.error('❌ Erreur inattendue:', err);
+      alert('Erreur lors de la déconnexion. Veuillez réessayer.');
+    }
   };
 
   return (

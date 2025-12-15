@@ -33,7 +33,7 @@ export function CoverLetterPreview({ coverLetter, wordCount }: CoverLetterPrevie
       const filename = 'Lettre_Motivation.pdf';
 
       // Appeler l'API
-      const response = await fetch('/api/export-letter-pdf', {
+      const response = await fetch('/api/export/pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

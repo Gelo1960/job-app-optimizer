@@ -123,15 +123,146 @@
 }
 
 @layer utilities {
+  /* Glass Morphism - Style iOS moderne */
   .glass-panel {
-    @apply bg-white/60 backdrop-blur-xl border border-white/20 shadow-xl;
+    background-color: rgb(255 255 255 / 0.6);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgb(255 255 255 / 0.2);
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    border-radius: 1rem;
   }
 
   .glass-card {
-    @apply bg-white/50 backdrop-blur-lg border border-white/30 shadow-sm transition-all hover:bg-white/60;
+    background-color: rgb(255 255 255 / 0.7);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgb(255 255 255 / 0.3);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    border-radius: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .glass-card:hover {
+    background-color: rgb(255 255 255 / 0.8);
   }
 
   .glass-overlay {
-    @apply bg-black/5 backdrop-blur-sm;
+    background-color: rgb(0 0 0 / 0.05);
+    backdrop-filter: blur(4px);
+  }
+
+  /* Gradients - Inspirés de l'image */
+  .gradient-primary {
+    background-image: linear-gradient(to bottom right, #3b82f6, #a855f7, #4f46e5);
+  }
+
+  .gradient-warm {
+    background-image: linear-gradient(to bottom right, #f472b6, #f87171, #facc15);
+  }
+
+  .gradient-cool {
+    background-image: linear-gradient(to bottom right, #22d3ee, #3b82f6);
+  }
+
+  .gradient-sunset {
+    background-image: linear-gradient(to bottom right, #fb923c, #f472b6, #a855f7);
+  }
+
+  .gradient-morning {
+    background-image: linear-gradient(to bottom right, #fef08a, #fed7aa, #fbcfe8);
+  }
+
+  /* Buttons avec glow effect */
+  .btn-gradient {
+    background-image: linear-gradient(to bottom right, #3b82f6, #a855f7, #4f46e5);
+    color: white;
+    font-weight: 600;
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgb(168 85 247 / 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .btn-gradient:hover {
+    box-shadow: 0 20px 25px -5px rgb(168 85 247 / 0.4);
+  }
+
+  .btn-glass {
+    background-color: rgb(255 255 255 / 0.7);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgb(255 255 255 / 0.3);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    border-radius: 1.5rem;
+    color: rgb(17 24 39);
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .btn-glass:hover {
+    background-color: rgb(255 255 255 / 0.8);
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  }
+
+  /* Cards widget style */
+  .widget-card {
+    background-color: rgb(255 255 255 / 0.7);
+    backdrop-filter: blur(40px);
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    border: 1px solid rgb(255 255 255 / 0.2);
+    padding: 1.5rem;
+  }
+
+  .widget-card-hover {
+    background-color: rgb(255 255 255 / 0.7);
+    backdrop-filter: blur(40px);
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    border: 1px solid rgb(255 255 255 / 0.2);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .widget-card-hover:hover {
+    background-color: rgb(255 255 255 / 0.8);
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  }
+
+  /* Text gradients */
+  .text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(to right, #2563eb, #9333ea);
+  }
+
+  /* Shadows douces */
+  .shadow-soft {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
+  }
+
+  /* Border radius cohérents */
+  .rounded-widget {
+    border-radius: 1.5rem;
+  }
+
+  .rounded-button {
+    border-radius: 1rem;
+  }
+
+  .rounded-input {
+    border-radius: 0.75rem;
+  }
+
+  /* Scrollbar invisible (style iOS) */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

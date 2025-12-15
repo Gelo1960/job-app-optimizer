@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context/auth-context';
-import { ApiKeysService, AIProvider } from '@/lib/services/api-keys.service';
+import { ApiKeysClientService as ApiKeysService, AIProvider } from '@/lib/services/api-keys.client.service';
 import { Key, Check, X, AlertCircle } from 'lucide-react';
 
 export default function SettingsPage() {

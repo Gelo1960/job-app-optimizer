@@ -4,7 +4,7 @@
 // ============================================================================
 
 import { ContactSearchResult, Contact } from '@/lib/types';
-import { supabase } from '@/lib/db/supabase';
+import { getAuthenticatedClient } from '@/lib/db/server-actions';
 
 const HUNTER_API_KEY = process.env.HUNTER_IO_API_KEY;
 const HUNTER_BASE_URL = 'https://api.hunter.io/v2';
@@ -33,8 +33,6 @@ interface HunterResponse {
 // ============================================================================
 
 export class ContactFinderService {
-  private supabase = supabase;
-
   // --------------------------------------------------------------------------
   // RECHERCHE PRINCIPALE
   // --------------------------------------------------------------------------
@@ -215,7 +213,8 @@ export class ContactFinderService {
 
   private async getCachedContacts(companyName: string): Promise<ContactSearchResult | null> {
     try {
-      const { data, error } = await this.supabase
+      const supabase = await getAuthenticatedClient();
+      const { data, error } = await supabase
         .from('contact_search_cache')
         .select('*')
         .eq('company_name', companyName)
@@ -235,7 +234,8 @@ export class ContactFinderService {
 
   private async cacheContacts(companyName: string, contacts: ContactSearchResult): Promise<void> {
     try {
-      const { error } = await this.supabase
+      const supabase = await getAuthenticatedClient();
+      const { error } = await supabase
         .from('contact_search_cache')
         .upsert({
           company_name: companyName,

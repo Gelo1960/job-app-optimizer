@@ -5,7 +5,7 @@ import {
   GhostJobSignal,
   GhostJobRiskLevel,
 } from '../types';
-import { supabase } from '../db/supabase';
+import { getAuthenticatedClient } from '@/lib/db/server-actions';
 import crypto from 'crypto';
 
 /**
@@ -248,6 +248,7 @@ export class GhostJobDetectorService {
    */
   private static async detectReposting(jobUrl: string): Promise<GhostJobSignal | null> {
     try {
+      const supabase = await getAuthenticatedClient();
       const urlHash = crypto.createHash('sha256').update(jobUrl).digest('hex');
 
       // Check combien de fois cette URL a été analysée
@@ -263,7 +264,7 @@ export class GhostJobDetectorService {
 
       // Si plus de 2 analyses avec des dates différentes
       const uniqueDates = new Set(
-        data.map((d) => d.created_at.split('T')[0])
+        data.map((d: { created_at: string }) => d.created_at.split('T')[0])
       );
 
       if (uniqueDates.size >= 3) {

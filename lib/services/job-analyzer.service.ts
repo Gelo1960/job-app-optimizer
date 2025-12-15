@@ -4,7 +4,7 @@ import {
   JOB_ANALYSIS_SYSTEM_PROMPT,
   createJobAnalysisPrompt,
 } from '../prompts/job-analysis.prompt';
-import { supabase } from '../db/supabase';
+import { getAuthenticatedClient } from '@/lib/db/server-actions';
 import crypto from 'crypto';
 
 /**
@@ -61,6 +61,7 @@ export class JobAnalyzerService {
     textHash: string
   ): Promise<JobAnalysis | null> {
     try {
+      const supabase = await getAuthenticatedClient();
       const { data, error } = await supabase
         .from('job_analyses')
         .select('*')
@@ -100,6 +101,7 @@ export class JobAnalyzerService {
     jobUrl?: string
   ): Promise<void> {
     try {
+      const supabase = await getAuthenticatedClient();
       // Extrait company/job title si possible (pour recherche future)
       const companyName = this.extractCompanyName(analysis);
       const jobTitle = this.extractJobTitle(analysis);

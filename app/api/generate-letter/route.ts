@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CoverLetterGeneratorService } from '@/lib/services/cover-letter-generator.service';
-import { supabase } from '@/lib/db/supabase';
+import { getAuthenticatedClient } from '@/lib/db/server-actions';
 import { UserProfile, JobAnalysis } from '@/lib/types';
 
 /**
@@ -9,6 +9,7 @@ import { UserProfile, JobAnalysis } from '@/lib/types';
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await getAuthenticatedClient();
     const body = await request.json();
     const { userProfileId, jobAnalysis, optimizationLevel } = body;
 
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
         .from('education')
         .select('*')
         .eq('user_profile_id', userProfileId)
-        .order('display_order', { ascending: true }),
+        .order('display_order', { ascending: true}),
 
       supabase
         .from('skills')

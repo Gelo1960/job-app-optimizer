@@ -5,7 +5,7 @@ import {
   createCompanyEnrichmentPrompt,
   createSimpleWebScrapingPrompt,
 } from '../prompts/company-enrichment.prompt';
-import { supabase } from '../db/supabase';
+import { getAuthenticatedClient } from '@/lib/db/server-actions';
 import crypto from 'crypto';
 
 /**
@@ -178,6 +178,7 @@ export class CompanyEnrichmentService {
     cacheKey: string
   ): Promise<CompanyEnrichment | null> {
     try {
+      const supabase = await getAuthenticatedClient();
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() - this.CACHE_DURATION_DAYS);
 
@@ -219,6 +220,7 @@ export class CompanyEnrichmentService {
     enrichment: CompanyEnrichment
   ): Promise<void> {
     try {
+      const supabase = await getAuthenticatedClient();
       await supabase.from('company_enrichments').upsert({
         cache_key: cacheKey,
         company_name: companyName,
